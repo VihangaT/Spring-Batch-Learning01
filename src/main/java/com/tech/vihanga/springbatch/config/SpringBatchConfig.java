@@ -73,6 +73,7 @@ public class SpringBatchConfig {
                 .build();
     }
 
+    @Bean
     public Job job(){
         return jobBuilderFactory.get("importCustomers")
                 .flow(step1()).end().build();
