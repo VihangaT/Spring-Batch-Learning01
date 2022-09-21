@@ -1,5 +1,9 @@
 package com.tech.vihanga.springbatch.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -7,6 +11,9 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "CUSTOMERS_INFO")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Customer {
 
     @Id
@@ -26,9 +33,4 @@ public class Customer {
     private String country;
     @Column(name = "DOB")
     private String dob;
-
-
-    public Customer(int id) {
-        this.id = id;
-    }
 }

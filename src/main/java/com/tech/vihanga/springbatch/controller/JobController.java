@@ -1,12 +1,12 @@
 package com.tech.vihanga.springbatch.controller;
 
-import lombok.AllArgsConstructor;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,7 +32,7 @@ public class JobController {
         }
 
     }
-
+    @GetMapping("/check")
     public String check(){
         return "It's up and running!";
     }

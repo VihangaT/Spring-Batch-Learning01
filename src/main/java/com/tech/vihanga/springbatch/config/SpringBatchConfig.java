@@ -1,7 +1,7 @@
 package com.tech.vihanga.springbatch.config;
 
 import com.tech.vihanga.springbatch.entity.Customer;
-import com.tech.vihanga.springbatch.repository.CustormerRepository;
+import com.tech.vihanga.springbatch.repository.CustomerRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -14,9 +14,12 @@ import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 
 @Configuration
 @EnableBatchProcessing
@@ -25,7 +28,7 @@ public class SpringBatchConfig {
 
     private JobBuilderFactory jobBuilderFactory;
     private StepBuilderFactory stepBuilderFactory;
-    private CustormerRepository custormerRepository;
+    private CustomerRepository customerRepository;
 
     @Bean
     public FlatFileItemReader<Customer> reader(){
@@ -39,6 +42,7 @@ public class SpringBatchConfig {
 
     private LineMapper<Customer> lineMapper() {
         DefaultLineMapper<Customer> lineMapper = new DefaultLineMapper<>();
+
         DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer();
         lineTokenizer.setDelimiter(",");
         lineTokenizer.setStrict(false);
@@ -46,20 +50,21 @@ public class SpringBatchConfig {
 
         BeanWrapperFieldSetMapper<Customer> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
         fieldSetMapper.setTargetType(Customer.class);
+
         lineMapper.setLineTokenizer(lineTokenizer);
         lineMapper.setFieldSetMapper(fieldSetMapper);
         return lineMapper;
     }
 
     @Bean
-    public CustomerProcesser processer(){
+    public CustomerProcesser processor(){
         return new CustomerProcesser();
     }
 
     @Bean
     public RepositoryItemWriter<Customer> writer(){
-        RepositoryItemWriter<Customer> writer = new RepositoryItemWriter();
-        writer.setRepository(custormerRepository);
+        RepositoryItemWriter<Customer> writer = new RepositoryItemWriter<>();
+        writer.setRepository(customerRepository);
         writer.setMethodName("save");
         return writer;
     }
@@ -68,8 +73,9 @@ public class SpringBatchConfig {
     public Step step1(){
         return stepBuilderFactory.get("csv-step").<Customer,Customer>chunk(10)
                 .reader(reader())
-                .processor(processer())
+                .processor(processor())
                 .writer(writer())
+                .taskExecutor(taskExecutor())
                 .build();
     }
 
@@ -77,5 +83,12 @@ public class SpringBatchConfig {
     public Job job(){
         return jobBuilderFactory.get("importCustomers")
                 .flow(step1()).end().build();
+    }
+
+    @Bean
+    public TaskExecutor taskExecutor(){
+        SimpleAsyncTaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
+        asyncTaskExecutor.setConcurrencyLimit(10);
+        return asyncTaskExecutor;
     }
 }
